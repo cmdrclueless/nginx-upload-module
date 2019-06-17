@@ -10,15 +10,13 @@
 
 #if (NGX_HAVE_OPENSSL_MD5_H)
 #include <openssl/md5.h>
+#define  MD5Init    MD5_Init
+#define  MD5Update  MD5_Update
+#define  MD5Final   MD5_Final
 #else
 #include <md5.h>
 #endif
 
-#if (NGX_OPENSSL_MD5)
-#define  MD5Init    MD5_Init
-#define  MD5Update  MD5_Update
-#define  MD5Final   MD5_Final
-#endif
 
 #if (NGX_HAVE_OPENSSL_SHA1_H)
 #include <openssl/sha.h>
@@ -278,7 +276,7 @@ static ngx_int_t ngx_http_request_body_filter(ngx_http_request_t *r, ngx_chain_t
 static ngx_int_t ngx_http_request_body_length_filter(ngx_http_request_t *r, ngx_chain_t *in);
 static ngx_int_t ngx_http_request_body_chunked_filter(ngx_http_request_t *r, ngx_chain_t *in);
 
-static ngx_int_t ngx_http_request_body_save_filter(ngx_http_request_t *r, ngx_chain_t *in);
+static ngx_int_t _ngx_http_request_body_save_filter(ngx_http_request_t *r, ngx_chain_t *in);
 
 static ngx_int_t ngx_http_upload_handler(ngx_http_request_t *r);
 static ngx_int_t ngx_http_upload_options_handler(ngx_http_request_t *r);
@@ -3289,7 +3287,7 @@ ngx_http_request_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 }
 
 static ngx_int_t
-ngx_http_request_body_save_filter(ngx_http_request_t *r, ngx_chain_t *in)
+_ngx_http_request_body_save_filter(ngx_http_request_t *r, ngx_chain_t *in)
 {
 #if (NGX_DEBUG)
     ngx_chain_t               *cl;
@@ -3390,7 +3388,7 @@ ngx_http_request_body_length_filter(ngx_http_request_t *r, ngx_chain_t *in)
         ll = &tl->next;
     }
 
-    rc = ngx_http_request_body_save_filter(r, out);
+    rc = _ngx_http_request_body_save_filter(r, out);
 
     ngx_chain_update_chains(r->pool, &rb->free, &rb->busy, &out,
                             (ngx_buf_tag_t) &ngx_http_read_client_request_body);
@@ -3541,7 +3539,7 @@ ngx_http_request_body_chunked_filter(ngx_http_request_t *r, ngx_chain_t *in)
         }
     }
 
-    rc = ngx_http_request_body_save_filter(r, out);
+    rc = _ngx_http_request_body_save_filter(r, out);
 
     ngx_chain_update_chains(r->pool, &rb->free, &rb->busy, &out,
                             (ngx_buf_tag_t) &ngx_http_read_client_request_body);
